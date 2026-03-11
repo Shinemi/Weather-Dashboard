@@ -1,70 +1,120 @@
 class WeatherInfo {
-    constructor(city, country, temp, humidity, description) {
+    constructor(city, country, temp, description) {
         this.city = city;
         this.country = country;
         this.temp = temp;
-        this.humidity = humidity;
         this.description = description;
     }
 }
 
+const cityInput = document.getElementById("city");
+const weatherContainer = document.getElementById("weather-container");
+const favoritesList = document.getElementById("favorites-list");
 
-//get the weather for a city, display weather information in the page  (minimum temp and weather description), and handle errors
-document.getElementById("get-weather").addEventListener("click", function () {
-    const city = document.getElementById("city").value;
+//convert weather code to weather description
+function getWeatherDescription(code) {
+    const weatherCodes = {
+        0: "🔆 Clear sky",
+        1: "🌤️Mainly clear",
+        2: "⛅ Partly cloudy",
+        3: "☁️ Overcast",
+        45: "🌫️ Fog",
+        48: "🧊 Rime fog",
+        51: "🌦️ Light drizzle",
+        61: "🌧️ Rain",
+        71: "🌨️ Snow fall",
+        80: "🌦️ Rain showers"
+    };
+    return weatherCodes[code] || "Unknown weather";
+}
 
+// fetch coordinates from city name
+async function getCoordinates(city) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=fr&format=json`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.results || data.results.length === 0) {
+        throw new Error("City not found");
+    }
+
+    return data.results[0];
+}
+
+
+// fetch weather data from coordinates
+async function getWeather(latitude, longitude) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    return data.current_weather;
+}
+
+
+// main function to display weather information
+async function displayWeather() {
+    const city = cityInput.value.trim();
+
+    if (!city) {
+        weatherContainer.innerHTML = "<p>Please enter a city name.</p>";
+        return;
+    }
 
     try {
-        fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=fr&format=json`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.results && data.results.length > 0) {
-                    const location = data.results[0];
-                    const latitude = location.latitude;
-                    const longitude = location.longitude;
+        const location = await getCoordinates(city);
+        const weather = await getWeather(location.latitude, location.longitude);
+        const weatherInfo = new WeatherInfo(city, location.country, weather.temperature, getWeatherDescription(weather.weathercode));
 
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`)
-                        .then(response => response.json())
-                        .then(weatherData => {
-                            const weather = weatherData.current_weather;
-                            const weatherInfo = new WeatherInfo(city, location.country, weather.temperature, weather.humidity, weather.description);
-                            document.getElementById("weather-container").innerHTML = `
-                                <h2>Weather in ${weatherInfo.city}, ${weatherInfo.country}</h2>
-                                <p>Temperature: ${weatherInfo.temp}°C</p>
-                                <p>Humidity: ${weatherInfo.humidity}%</p>
-                                <p>Description: ${weatherInfo.description}</p>
-                            `;
-                    });
-                }   
-        }); 
-    }
-    catch (error) {
+        weatherContainer.innerHTML = `
+            <h2>Weather in ${weatherInfo.city}, ${weatherInfo.country}</h2>
+            <p>Temperature: ${weatherInfo.temp}°C</p>
+            <p>Description: ${weatherInfo.description}</p>
+        `;
+    } catch (error) {
         console.error("Error fetching weather data:", error);
-        document.getElementById("weather-container").innerHTML = "<p>Error fetching weather data. Please try again later.</p>";
+        weatherContainer.innerHTML = "<p>Error fetching weather data. Please try again later.</p>";
     }
-});
-
-
-//add a city to favourites, stock it in local navigator storage (JSON)
-document.getElementById("add-favorite").addEventListener("click", function () {
-    const city = document.getElementById("city").value;
-    let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    if (!favorites.includes(city)) {
-        favorites.push(city);
-        localStorage.setItem("favorites", JSON.stringify(favorites));
-        updateFavoritesList();
-    }
-});
-
-
-//display the list of favorite cities (from JSON) in the page (create a new option for each city in the list)
-function updateFavoritesList() {
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    const favoritesList = document.getElementById("favorites-list");
-    favoritesList.innerHTML = "";
-    favorites.forEach(favorite => {
-        const option = document.createElement("option");
-        option.textContent = favorite;
-        favoritesList.appendChild(option);
-    });
 }
+
+// event listener for getting weather information
+document.getElementById("get-weather").addEventListener("click", displayWeather);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// //add a city to favourites, stock it in local navigator storage (JSON)
+// document.getElementById("add-favorite").addEventListener("click", function () {
+//     const city = document.getElementById("city").value;
+//     let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+//     if (!favorites.includes(city)) {
+//         favorites.push(city);
+//         localStorage.setItem("favorites", JSON.stringify(favorites));
+//         updateFavoritesList();
+//     }
+// });
+
+
+// //display the list of favorite cities (from JSON) in the page (create a new option for each city in the list)
+// function updateFavoritesList() {
+//     const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+//     const favoritesList = document.getElementById("favorites-list");
+//     favoritesList.innerHTML = "";
+//     favorites.forEach(favorite => {
+//         const option = document.createElement("option");
+//         option.textContent = favorite;
+//         favoritesList.appendChild(option);
+//     });
+// }
