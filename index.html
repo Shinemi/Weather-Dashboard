@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+</head>
+<body>
+    <h1>Weather Dashboard</h1>
+    <!-- select a city -->
+    <div id="city-selection">
+        <label for="city">Select a city:</label>
+        <input type="text" id="city" name="city" placeholder="Enter city name">
+        <button id="add-favorite">Add to Favorites</button>
+        <select name="favorites" id="favorites">
+            <option value="">--Select from favorites--</option>
+        </select>
+        <button  id="get-weather" value="Get Weather">Get Weather</button>
+    </div>
+
+    <div id="weather-container">
+        <!-- Weather information will be displayed here -->
+    </div>
+
+    <script src="weather.js"></script>
+</body>
+</html>
