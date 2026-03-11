@@ -15,7 +15,7 @@ const favoritesList = document.getElementById("favorites-list");
 function getWeatherDescription(code) {
     const weatherCodes = {
         0: "🔆 Clear sky",
-        1: "🌤️Mainly clear",
+        1: "🌤️ Mainly clear",
         2: "⛅ Partly cloudy",
         3: "☁️ Overcast",
         45: "🌫️ Fog",
@@ -79,42 +79,55 @@ async function displayWeather() {
     }
 }
 
+// add city to favorites
+function addFavorite() {
+
+    const city = cityInput.value.trim();
+
+    if (!city) return;
+
+    let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+    if (!favorites.includes(city)) {
+        favorites.push(city);
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+    }
+
+    updateFavoritesList();
+}
+
+// display favorites in select
+function updateFavoritesList() {
+
+    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+    favoritesList.innerHTML = `<option value="">--Select from favorites--</option>`;
+
+    favorites.forEach(city => {
+
+        const option = document.createElement("option");
+        option.value = city;
+        option.textContent = city;
+
+        favoritesList.appendChild(option);
+    });
+}
+
+// when selecting favorite
+    favoritesList.addEventListener("change", () => {
+
+        const selectedCity = favoritesList.value;
+
+        cityInput.value = selectedCity;
+});
+
+
+// load favorites when page loads
+window.addEventListener("load", updateFavoritesList);
+
 // event listener for getting weather information
 document.getElementById("get-weather").addEventListener("click", displayWeather);
 
+// event listener for adding city to favorites
+document.getElementById("add-favorite").addEventListener("click", addFavorite);
 
-
-
-
-
-
-
-
-
-
-
-
-
-// //add a city to favourites, stock it in local navigator storage (JSON)
-// document.getElementById("add-favorite").addEventListener("click", function () {
-//     const city = document.getElementById("city").value;
-//     let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-//     if (!favorites.includes(city)) {
-//         favorites.push(city);
-//         localStorage.setItem("favorites", JSON.stringify(favorites));
-//         updateFavoritesList();
-//     }
-// });
-
-
-// //display the list of favorite cities (from JSON) in the page (create a new option for each city in the list)
-// function updateFavoritesList() {
-//     const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-//     const favoritesList = document.getElementById("favorites-list");
-//     favoritesList.innerHTML = "";
-//     favorites.forEach(favorite => {
-//         const option = document.createElement("option");
-//         option.textContent = favorite;
-//         favoritesList.appendChild(option);
-//     });
-// }
